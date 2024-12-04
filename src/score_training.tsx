@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Stepper, Divider, Button } from 'antd-mobile';
+import { Stepper, Divider, Button, CapsuleTabs } from 'antd-mobile';
 import { Vex, Stave, StaveNote, Formatter } from 'vexflow';
 import './score_training.less';
 
@@ -11,6 +11,12 @@ const DEFAULT_SCORE_COUNT = 4;
 
 const STD_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const FULL_GROUPS = [1, 2, 3, 4, 5, 6, 7];
+
+enum ClefOption {
+    treble = 'treble',
+    bass = 'bass',
+    random = 'random',
+}
 
 function generateKey(groupRange: [number, number]): string {
     const gr = Math.random() * (groupRange[1] - groupRange[0] + 1);
@@ -51,6 +57,7 @@ export function ScoreTraining() {
     const [askForGroup, setAskForGroup] = useState(false);
     const [currentInput, setCurrentInput] = useState('');
     const [lastAnswer, setLastAnswer] = useState('');
+    const [clef, setClef] = useState(ClefOption.treble);
 
     useEffect(() => {
         let handle = setInterval(() => {
@@ -78,7 +85,11 @@ export function ScoreTraining() {
         context.setFont('Arial', 10);
 
         const stave = new Stave(10, 0, window.innerWidth - 20);
-        stave.addClef('treble').addTimeSignature('4/4');
+        let noteClef = clef;
+        if (clef === ClefOption.random) {
+            noteClef = Math.random() > 0.5 ? ClefOption.treble : ClefOption.bass;
+        }
+        stave.addClef(noteClef).addTimeSignature('4/4');
         stave.setContext(context).draw();
 
         const duration = ['1', '2', '4', '8'][Math.min(Math.floor(Math.random() * 4), 3)];
@@ -152,7 +163,7 @@ export function ScoreTraining() {
                         结果
                     </div>
                     <div className="row">
-                        <span style={{ color: states[states.length - 1] ? '#5b8c00' : '#f5222d'}}>回答{states[states.length - 1] ? '正确' : '错误'}</span>
+                        <span style={{ color: states[states.length - 1] ? '#5b8c00' : '#f5222d' }}>回答{states[states.length - 1] ? '正确' : '错误'}</span>
                         <span>正确答案：{lastAnswer}</span>
                         <span>耗时：{Math.round(costs[costs.length - 1]) / 1000}s</span>
                     </div>
@@ -161,6 +172,14 @@ export function ScoreTraining() {
             </div> : <div>
                 <div className="title-row">
                     训练设置
+                </div>
+                <div className="row">
+                    <span>谱号：</span>
+                    <CapsuleTabs activeKey={clef} onChange={option => setClef(option as ClefOption)}>
+                        <CapsuleTabs.Tab title={ClefOption.treble} key={ClefOption.treble}/>
+                        <CapsuleTabs.Tab title={ClefOption.bass} key={ClefOption.bass}/>
+                        <CapsuleTabs.Tab title={ClefOption.random} key={ClefOption.random}/>
+                    </CapsuleTabs>
                 </div>
                 <div className="row">
                     <span>音域：</span>
